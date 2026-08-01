@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="/styles.css" rel="stylesheet" type="text/css" />
+    <link href="https://fonts.googleapis.com/css2?family=PT+Mono&display=swap" rel="stylesheet" />
+    <title>Toronto Games Week Blog 2026</title>
+
+    <meta name="author" content="Marie Claire LeBlanc Flanagan" />
+    <meta name="description" content="Celebrating games in Toronto, Canada" />
+
+    <meta property="og:title" content="Toronto Games Week" />
+    <meta property="og:description" content="Celebrating games in Toronto, Canada" />
+
+    <meta property="og:image" content="/images/2024/tgwposternologos.png" />
+
+    <meta property="og:url" content="https://torontogamesweek.com" />
+    <meta property="og:type" content="webpage" />
+
+    <meta name="twitter:title" content="Toronto Games Week" />
+    <meta name="twitter:description" content="Celebrating games in Toronto, Canada" />
+    <meta name="twitter:image" content="images/2023/TGWSocialSmall.png" id="indexImage" />
+    <meta name="twitter:card" content="summary_large_image" />
+  </head>
+
+  <body>
+    <header>
+      <button id="nav-toggle" aria-expanded="false" aria-controls="primary-navigation" class="nav-toggle-button">
+        <span class="sr-only">Menu</span>
+        <span class="icon"></span>
+      </button>
+
+      <div>
+        <a href=""><img alt="" /></a>
+      </div>
+      <nav id="primary-navigation">
+        <ul>
+          <li>
+            <a href="/index.html">Home</a>
+          </li>
+          <li>
+            <!-- <a href="schedule.html" id="scheduleNav">Schedule</a> -->
+          </li>
+          <li>
+            <a href="/about.html" id="aboutNav">About</a>
+          </li>
+        </ul>
+      </nav>
+    </header>
+    <canvas id="myCanvas" width="500" height="400"></canvas>
+    <script src="https://cdn.rawgit.com/mrdoob/three.js/r129/build/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
+    <script src="/playableBackground.js"></script>
+    <main>
+      <div class="headerImgDiv">
+        <img id="letterImg" src="/images/2025/TGWLogo2025wCap.png" alt="A type treatment of Toronto Games Week" />
+        <p id="caption">A celebration of playable arts & culture</p>
+        <br />
+      </div>
+
+      <div class="contentContainer" id="landingPage">
+        <div class="content blog">
+          <section class="textBox">
+            <h2>2026 Toronto Games Week Recap</h2>
+
+            <h2>Numbers aren't everything, but...</h2>
+
+            <p>For the curious, our 4th year had:</p>
+
+            <ul class="controllerList" id="statsList">
+              <li>Nearly 9000 combined attendees!</li>
+              <li>Almost 60 events!</li>
+              <li>Special guests from Portland, Ecuador, New York, and Montreal!</li>
+              <li>25 different organizations running events!</li>
+              <li>81 volunteer registrations!</li>
+              <li>Almost 40 supporters and sponsors (see our thanks below!)</li>
+            </ul>
+
+            <h2>Photos Ahoy!</h2>
+
+            <p>We struggled to get these down to a round dozen photos... we'll start with the ending!</p>
+
+            <img
+              src="/images/blog/tgw2026-closing.png"
+              alt="A performer leaps into the air with arms raised under pink and purple lights as a crowd watches at the TGW Closing Celebration" />
+            <p>TGW Closing Celebration <em>(photo: Dean Tomlinson)</em></p>
+            <br />
+
+            <img
+              src="/images/blog/tgw2026-controller.jpg"
+              alt="A hand holds a green custom-built game controller badge reading Toronto Games Week, Play Outside the Box" />
+            <p>Custom Controller Design & Build Workshop <em>(photo: Douglas Gregory)</em></p>
+            <br />
+
+            <img
+              src="/images/blog/tgw2026-escape-room.jpg"
+              alt="A group poses in front of red curtains holding money bag props" />
+            <p>Toronto Escape Room Meetup and Many Happy Returns Kick-off Party <em>(photo: Julie Cohn)</em></p>
+            <br />
+
+            <img
+              src="/images/blog/tgw2026-bonus-stage.jpg"
+              alt="A crowd of attendees applauds in a cozy bar strung with fairy lights" />
+            <p>Bonus Stage <em>(photo: Luma)</em></p>
+            <br />
+
+            <img
+              src="/images/blog/tgw2026-ctrl-alt-delicious.jpg"
+              alt="Two players face off at a tabletop arcade cabinet" />
+            <p>CTRL-ALT-DELICIOUS <em>(photo: Marisa Ranelli)</em></p>
+            <br />
+
+            <img
+              src="/images/blog/tgw2026-out-of-bounds.jpg"
+              alt="Three commentators wearing headphones react during a speedrunning broadcast" />
+            <p>Out of Bounds Torontrois <em>(photo: Izzy Hope)</em></p>
+            <br />
+
+            <img
+              src="/images/blog/tgw2026-gym-game.jpg"
+              alt="Players chase a giant inflatable soccer ball across a sunny field" />
+            <p>Gym Game Gauntlet <em>(photo: Nick Xie)</em></p>
+            <br />
+
+            <img
+              src="/images/blog/tgw2026-ctrl-alt-delicious-2.jpg"
+              alt="Two players hold plush controllers in front of a television showing an arcade game" />
+            <p>CTRL-ALT-DELICIOUS <em>(Photo: Kevin Ly)</em></p>
+            <br />
+
+            <img
+              src="/images/blog/tgw2026-dei-or-die.jpg"
+              alt="A speaker at a podium presents a slide to a seated audience at DEI or DIE v2: DEI Harder" />
+            <p>DEI or DIE v2: DEI Harder <em>(photo: Douglas Gregory)</em></p>
+            <br />
+
+            <img
+              src="/images/blog/tgw2026-night-parkcade.jpg"
+              alt="Attendees gather around a glowing projector screen in a dark park at night" />
+            <p>Night Parkcade <em>(photo: Nikita Stulikovd)</em></p>
+            <br />
+
+            <img
+              src="/images/blog/tgw2026-sago-mini.jpg"
+              alt="A speaker addresses a seated audience beneath two screens showing colourful game art" />
+            <p>An Afternoon With Sago Mini <em>(photo: Natalie Skillen)</em></p>
+            <br />
+
+            <img
+              src="/images/blog/tgw2026-droqen-island.jpg"
+              alt="A group of attendees walks down a path toward the water on Toronto Island" />
+            <p>Walkin' with Droqen... on the Island <em>(photo: Sam Ollmann-Chan)</em></p>
+            <br />
+            <br />
+            <p>~~~</p>
+
+            <h2>Thanks for Playing!</h2>
+
+            <p>
+              Many of you know the TGW isn't a traditional festival, but rather a coalition of independent organizations and organizers who each
+              contribute a wonderful event. This year our presenting organizations included Baby Ghosts, Bonus Stage, Broken Games Collective, Demo
+              Room, Dirty Rectangles, Droqen, GAIN, Hand Eye Society, Hypergame Storytime, IGDA Toronto, InterAccess, Kitten Cup Studio, Lady
+              Arcaders, OCADU, Team Hero Coder, The G.R.I.D., Toronto Escape Room Meetup, Toronto Game Audio Collective, Trainwreck Labs, Vivid
+              Foundry, GamerELLA, and Wero.
+            </p>
+
+            <p>We couldn't have done it without our funders at the City of Toronto and Ontario Creates.</p>
+
+            <p>
+              The following heroes sponsored TGW this year: CWA Canada / CODE-CANADA, Drinkbox Games, Ravine Studio, Unreal Education / EPIC, York
+              University, Sago Mini, Unity, & Interactive Ontario.
+            </p>
+
+            <p>
+              We also received venue and equipment support from the following stellar institutions: Toronto Public Library, George Brown College,
+              Level Up, Red Bull, ROM (Royal Ontario Museum), TO Jam, Toronto Metropolitan University, TTL Makerspace, XP Gaming Inc., Morty, UTM
+              Library, Funland, AMD, Music Publishers Canada, Screen Composers Guild of Canada, University of Toronto Electronic Music Studio, & Get
+              Set Games.
+            </p>
+
+            <p>
+              And of course! Thanks to the TGW 2026 team: Marie LeBlanc Flanagan and Jim Munroe (co-organizers), Marisa Ranelli (social media &
+              program design), Sofy K. (volunteer coordination), Andrew Tran (website assistance), Richard Cuartero (AV management), Tanner
+              Blackburn and Bennett Liu (press) & Shana Wang (documentation).
+            </p>
+          </section>
+        </div>
+      </div>
+    </main>
+    <script src="/play.js"></script>
+    <script src="/connectionTest.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const navToggle = document.getElementById("nav-toggle");
+        const primaryNav = document.getElementById("primary-navigation");
+
+        navToggle.addEventListener("click", function () {
+          const isExpanded = navToggle.getAttribute("aria-expanded") === "true";
+          navToggle.setAttribute("aria-expanded", !isExpanded);
+          primaryNav.classList.toggle("expanded");
+        });
+      });
+    </script>
+  </body>
+</html>
