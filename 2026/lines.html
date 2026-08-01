@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Line Tweaker</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #b8d4e8;
+    font: 13px/1.5 monospace;
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* Canvas area */
+  #canvas-wrap {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+  }
+  canvas { display: block; width: 100%; height: 100%; }
+
+  /* Right panel */
+  #panel {
+    width: 260px;
+    flex-shrink: 0;
+    background: rgba(255,255,255,0.55);
+    border-left: 2px solid rgba(0,0,0,0.08);
+    overflow-y: auto;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .panel-title {
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #333;
+    margin-bottom: 10px;
+  }
+
+  /* Tab buttons */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .tab {
+    flex: 1;
+    min-width: 60px;
+    padding: 5px 4px;
+    border: 2px solid #aaa;
+    background: white;
+    border-radius: 4px;
+    cursor: pointer;
+    font: 11px monospace;
+    color: #555;
+    text-align: center;
+    transition: all 0.1s;
+  }
+  .tab:hover { border-color: #555; color: #000; }
+  .tab.active { border-color: #333; background: #333; color: #fff; font-weight: bold; }
+
+  /* Sections */
+  .section {
+    border-top: 1px solid rgba(0,0,0,0.1);
+    padding: 10px 0;
+  }
+  .section-label {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #888;
+    margin-bottom: 8px;
+  }
+
+  /* Sliders */
+  .param { margin-bottom: 9px; }
+  .param-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 3px;
+  }
+  .param-name { font-size: 11px; color: #444; }
+  .param-val {
+    font-size: 11px;
+    color: #111;
+    font-weight: bold;
+    min-width: 32px;
+    text-align: right;
+  }
+  input[type=range] {
+    width: 100%;
+    height: 4px;
+    accent-color: #333;
+    cursor: pointer;
+  }
+
+  /* Toggle */
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 11px;
+    color: #444;
+    cursor: pointer;
+  }
+  .toggle-row input { cursor: pointer; }
+
+  /* Hint */
+  .hint {
+    font-size: 10px;
+    color: #999;
+    line-height: 1.5;
+    margin-top: 6px;
+  }
+</style>
+</head>
+<body>
+
+<div id="canvas-wrap">
+  <canvas id="cv"></canvas>
+</div>
+
+<div id="panel">
+  <div class="panel-title">Line Tweaker</div>
+
+  <div class="tabs">
+    <button class="tab active" data-mode="brush">Brush</button>
+    <button class="tab" data-mode="connect-tent">Connect<br>tentative</button>
+    <button class="tab" data-mode="connect-solid">Connect<br>solid</button>
+    <button class="tab" data-mode="bounce-tent">Bounce<br>tentative</button>
+    <button class="tab" data-mode="bounce-solid">Bounce<br>solid</button>
+  </div>
+
+  <div id="controls"></div>
+
+  <div class="hint" id="hint"></div>
+</div>
+
+<script>
+// ── Canvas setup ──────────────────────────────────────────────
+const cv = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+const wrap = document.getElementById('canvas-wrap');
+
+function resize() {
+  cv.width = wrap.clientWidth;
+  cv.height = wrap.clientHeight;
+}
+resize();
+window.addEventListener('resize', () => { resize(); draw(); });
+
+// ── Fake balls ────────────────────────────────────────────────
+// Simple coloured circles to stand in for game balls
+const BALL_COLORS = ['#e85d5d','#f5a623','#f8e71c','#7ed321','#4a90e2','#9b59b6','#e91e8c'];
+function makeBall(x, y, r, colorIdx) {
+  return { x, y, r, color: BALL_COLORS[colorIdx % BALL_COLORS.length],
+    vx: (Math.random()-0.5)*1.2, vy: (Math.random()-0.5)*1.2 };
+}
+
+let balls = [];
+function resetBalls() {
+  balls = [
+    makeBall(0, 0, 40, 0),
+    makeBall(0, 0, 35, 2),
+    makeBall(0, 0, 45, 4),
+  ];
+  placeBalls();
+}
+function placeBalls() {
+  const W = cv.width, H = cv.height;
+  balls[0].x = W * 0.25; balls[0].y = H * 0.45;
+  balls[1].x = W * 0.55; balls[1].y = H * 0.38;
+  balls[2].x = W * 0.75; balls[2].y = H * 0.55;
+}
+
+function drawBall(b) {
+  // Chunky cartoon ball
+  ctx.beginPath();
+  ctx.arc(b.x, b.y, b.r, 0, Math.PI*2);
+  ctx.fillStyle = b.color;
+  ctx.fill();
+  // Black outline like the game art
+  ctx.lineWidth = 3.5;
+  ctx.strokeStyle = '#111';
+  ctx.stroke();
+  // Simple shine
+  ctx.beginPath();
+  ctx.arc(b.x - b.r*0.28, b.y - b.r*0.28, b.r*0.22, 0, Math.PI*2);
+  ctx.fillStyle = 'rgba(255,255,255,0.45)';
+  ctx.fill();
+}
+
+// ── Mode & params ─────────────────────────────────────────────
+let mode = 'brush';
+
+const PARAMS = {
+  brush: {
+    hint: 'Draw on the canvas. Lines fade over time.',
+    defs: [
+      { id:'width',      label:'Base Width',      min:4,   max:40,  step:1,    def:18   },
+      { id:'taper',      label:'Taper Amount',    min:0,   max:1,   step:0.01, def:0.55 },
+      { id:'opacity',    label:'Opacity',         min:0.1, max:1,   step:0.01, def:0.82 },
+      { id:'lifetime',   label:'Fade Time (s)',   min:2,   max:20,  step:0.5,  def:8    },
+      { id:'texture',    label:'Texture Roughness',min:0,  max:1,   step:0.01, def:0.38 },
+      { id:'edgefray',   label:'Edge Fray',       min:0,   max:1,   step:0.01, def:0.3  },
+    ]
+  },
+  'connect-tent': {
+    hint: 'Drag between the balls to see the tentative line.',
+    defs: [
+      { id:'dashLen',    label:'Dash Length',     min:2,   max:30,  step:1,    def:8    },
+      { id:'gapLen',     label:'Gap Length',      min:2,   max:30,  step:1,    def:6    },
+      { id:'width',      label:'Width',           min:1,   max:10,  step:0.5,  def:3.5  },
+      { id:'opacity',    label:'Opacity',         min:0.1, max:1,   step:0.01, def:0.75 },
+      { id:'wobble',     label:'Hand-wobble',     min:0,   max:1,   step:0.01, def:0.3  },
+    ]
+  },
+  'connect-solid': {
+    hint: 'Click a ball then another to connect. Balls move with spring physics.',
+    defs: [
+      { id:'width',      label:'Width',           min:1,   max:14,  step:0.5,  def:5    },
+      { id:'opacity',    label:'Opacity',         min:0.1, max:1,   step:0.01, def:0.85 },
+      { id:'stretchVis', label:'Stretch Visual',  min:0,   max:1,   step:0.01, def:0.7  },
+      { id:'squiggle',   label:'Slack Squiggle',  min:0,   max:1,   step:0.01, def:0.5  },
+      { id:'segments',   label:'Curve Segments',  min:2,   max:24,  step:1,    def:10   },
+    ]
+  },
+  'bounce-tent': {
+    hint: 'Drag to draw a tentative barrier.',
+    defs: [
+      { id:'dashLen',    label:'Dash Length',     min:2,   max:30,  step:1,    def:8    },
+      { id:'gapLen',     label:'Gap Length',      min:2,   max:30,  step:1,    def:6    },
+      { id:'width',      label:'Width',           min:1,   max:10,  step:0.5,  def:3.5  },
+      { id:'opacity',    label:'Opacity',         min:0.1, max:1,   step:0.01, def:0.75 },
+      { id:'wobble',     label:'Hand-wobble',     min:0,   max:1,   step:0.01, def:0.3  },
+    ]
+  },
+  'bounce-solid': {
+    hint: 'Committed barrier. Should feel solid and physical.',
+    defs: [
+      { id:'width',      label:'Width',           min:2,   max:24,  step:0.5,  def:10   },
+      { id:'outlineW',   label:'Outline Width',   min:0,   max:8,   step:0.5,  def:3    },
+      { id:'opacity',    label:'Opacity',         min:0.1, max:1,   step:0.01, def:1    },
+      { id:'fadeTime',   label:'Fade Time (s)',   min:2,   max:20,  step:0.5,  def:8    },
+      { id:'endCaps',    label:'End Caps Size',   min:0,   max:12,  step:0.5,  def:5    },
+    ]
+  },
+};
+
+let p = {}; // current param values
+
+function buildControls() {
+  const spec = PARAMS[mode];
+  const panel = document.getElementById('controls');
+  panel.innerHTML = '';
+  p = {};
+
+  spec.defs.forEach(def => {
+    p[def.id] = def.def;
+    const div = document.createElement('div');
+    div.className = 'param';
+    div.innerHTML = `
+      <div class="param-row">
+        <span class="param-name">${def.label}</span>
+        <span class="param-val" id="v_${def.id}">${def.def}</span>
+      </div>
+      <input type="range" min="${def.min}" max="${def.max}" step="${def.step}" value="${def.def}" id="r_${def.id}">
+    `;
+    panel.appendChild(div);
+    div.querySelector('input').addEventListener('input', e => {
+      const v = parseFloat(e.target.value);
+      p[def.id] = v;
+      document.getElementById('v_'+def.id).textContent = v;
+      draw();
+    });
+  });
+
+  document.getElementById('hint').textContent = spec.hint;
+}
+
+// ── Interaction state ─────────────────────────────────────────
+let brushPaths = [];    // [{points, created, colour}]
+let currentPath = null;
+let connections = [];   // [{b1, b2, restLen}]
+let selectedBall = null;
+let dragEnd = null;
+let barriers = [];      // [{x1,y1,x2,y2,created}]
+let drawStart = null;
+let drawEndPt = null;
+
+const BRUSH_COLORS = ['#E8A060','#6EC8A0','#F0C040','#E07090','#80A8D8','#C0A8D8'];
+let colIdx = 0;
+
+// Spring simulation
+let springT = 0;
+function updateSprings() {
+  if (mode !== 'connect-solid') return;
+  springT++;
+  connections.forEach(c => {
+    const dx = c.b2.x - c.b1.x, dy = c.b2.y - c.b1.y;
+    const dist = Math.sqrt(dx*dx+dy*dy) || 1;
+    const stretch = dist - c.restLen;
+    const f = stretch * 0.018;
+    const fx = (dx/dist)*f, fy = (dy/dist)*f;
+    c.b1.vx += fx; c.b1.vy += fy;
+    c.b2.vx -= fx; c.b2.vy -= fy;
+  });
+  balls.forEach(b => {
+    b.vx *= 0.92; b.vy *= 0.92;
+    b.x += b.vx; b.y += b.vy;
+    const W=cv.width, H=cv.height;
+    if(b.x-b.r<0){b.x=b.r;b.vx*=-0.7;}
+    if(b.x+b.r>W){b.x=W-b.r;b.vx*=-0.7;}
+    if(b.y-b.r<0){b.y=b.r;b.vy*=-0.7;}
+    if(b.y+b.r>H){b.y=H-b.r;b.vy*=-0.7;}
+  });
+}
+
+// ── Drawing functions ─────────────────────────────────────────
+
+// Marker-like brush stroke with texture
+function drawBrushPath(points, opacity, colour) {
+  if (points.length < 2) return;
+  const spline = buildSpline(points);
+  if (spline.length < 2) return;
+
+  const N = spline.length;
+  const baseW = p.width;
+  const texture = p.texture;
+  const fray = p.edgefray;
+  const taper = p.taper;
+
+  ctx.save();
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  // Pass 1: main body — variable width to simulate marker taper
+  for (let i = 0; i < N - 1; i++) {
+    const u = i / (N - 1);
+    // Taper: thin at start and end, full in middle
+    const taperEnv = taper > 0
+      ? Math.pow(Math.sin(u * Math.PI), taper * 1.5) * taper + (1 - taper)
+      : 1;
+    const w = baseW * taperEnv;
+
+    // Slight organic width noise (marker pressure variation)
+    const noiseW = texture > 0
+      ? w * (1 - texture * 0.2 * Math.abs(Math.sin(i * 1.7 + 3)))
+      : w;
+
+    ctx.beginPath();
+    ctx.moveTo(spline[i].x, spline[i].y);
+    ctx.lineTo(spline[i+1].x, spline[i+1].y);
+    ctx.lineWidth = noiseW;
+    ctx.strokeStyle = colour;
+    ctx.globalAlpha = opacity;
+    ctx.stroke();
+  }
+
+  // Pass 2: texture — scattered semi-transparent strokes along edges
+  if (texture > 0) {
+    for (let i = 0; i < N - 1; i += 2) {
+      const u = i / (N-1);
+      const taperEnv = taper > 0 ? Math.pow(Math.sin(u * Math.PI), taper * 1.5) * taper + (1 - taper) : 1;
+      const hw = (baseW * taperEnv) * 0.5;
+      const pt = spline[i];
+      const ptNext = spline[Math.min(i+1, N-1)];
+      const angle = Math.atan2(ptNext.y - pt.y, ptNext.x - pt.x);
+      const perp = angle + Math.PI/2;
+
+      // A few sparse fibre strokes perpendicular to the path
+      const fibres = Math.floor(texture * 4);
+      for (let f = 0; f < fibres; f++) {
+        const side = (Math.random() < 0.5 ? 1 : -1);
+        const offset = hw * (0.6 + Math.random() * 0.5) * side;
+        const len = 4 + Math.random() * 6;
+        const sx = pt.x + Math.cos(perp) * offset;
+        const sy = pt.y + Math.sin(perp) * offset;
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        ctx.lineTo(sx + Math.cos(angle)*len, sy + Math.sin(angle)*len);
+        ctx.lineWidth = 0.8 + Math.random();
+        ctx.globalAlpha = opacity * texture * 0.35 * Math.random();
+        ctx.stroke();
+      }
+    }
+  }
+
+  // Pass 3: edge fray — thin strokes just outside the edge
+  if (fray > 0) {
+    for (let i = 0; i < N - 1; i += 3) {
+      const u = i / (N-1);
+      const taperEnv = taper > 0 ? Math.pow(Math.sin(u * Math.PI), taper * 1.5) * taper + (1 - taper) : 1;
+      const hw = (baseW * taperEnv) * 0.5;
+      const pt = spline[i];
+      const ptN = spline[Math.min(i+2, N-1)];
+      const angle = Math.atan2(ptN.y - pt.y, ptN.x - pt.x);
+      const perp = angle + Math.PI/2;
+
+      if (Math.random() < fray * 0.6) {
+        const side = (Math.random() < 0.5 ? 1 : -1);
+        const wobOff = hw * (0.85 + Math.random() * 0.35) * side;
+        const flen = 2 + Math.random() * (fray * 10);
+        const sx = pt.x + Math.cos(perp) * wobOff;
+        const sy = pt.y + Math.sin(perp) * wobOff;
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        ctx.lineTo(
+          sx + Math.cos(angle + (Math.random()-0.5)*0.8) * flen,
+          sy + Math.sin(angle + (Math.random()-0.5)*0.8) * flen
+        );
+        ctx.lineWidth = 0.5 + Math.random() * 1.2;
+        ctx.globalAlpha = opacity * fray * 0.4;
+        ctx.stroke();
+      }
+    }
+  }
+
+  ctx.restore();
+}
+
+// Tentative dashed line — hand-wobbled
+function drawTentativeLine(x1, y1, x2, y2, opacity) {
+  const dx = x2-x1, dy = y2-y1;
+  const len = Math.sqrt(dx*dx+dy*dy);
+  if (len < 2) return;
+  const nx = dx/len, ny = dy/len;
+  const px = -ny, py = nx; // perp
+
+  const dash = p.dashLen;
+  const gap = p.gapLen;
+  const wobble = p.wobble * 4;
+  const period = dash + gap;
+
+  ctx.save();
+  ctx.lineCap = 'round';
+  ctx.lineWidth = p.width;
+  ctx.strokeStyle = '#1a1a1a';
+  ctx.globalAlpha = opacity;
+
+  let t = 0;
+  while (t < len) {
+    const dEnd = Math.min(t + dash, len);
+    ctx.beginPath();
+    let first = true;
+    // Draw dash with slight wobble
+    for (let s = t; s <= dEnd; s += 2) {
+      const u = s / len;
+      // Perlin-ish wobble: two sine waves
+      const wob = wobble * (Math.sin(u * 27.3) * 0.6 + Math.sin(u * 14.1 + 1.2) * 0.4);
+      const x = x1 + nx * s + px * wob;
+      const y = y1 + ny * s + py * wob;
+      if (first) { ctx.moveTo(x, y); first = false; }
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    t += period;
+  }
+  ctx.restore();
+}
+
+// Solid spring connection — reacts to tension/slack
+function drawSpringConnection(b1, b2) {
+  const dx = b2.x - b1.x, dy = b2.y - b1.y;
+  const dist = Math.sqrt(dx*dx+dy*dy) || 1;
+  const restLen = Math.hypot(cv.width*0.3, cv.height*0.07);
+  const stretch = dist - restLen; // + = stretched, - = slack
+  const stretchNorm = Math.max(-1, Math.min(1, stretch / (restLen * 0.8)));
+
+  const baseW = p.width;
+  // Width: thinner when stretched (taut), slightly thicker when slack
+  const w = stretchNorm > 0
+    ? baseW * (1 - stretchNorm * p.stretchVis * 0.55)
+    : baseW * (1 + Math.abs(stretchNorm) * 0.2);
+
+  const segs = Math.round(p.segments);
+  const nx = dx/dist, ny = dy/dist;
+  const perpX = -ny, perpY = nx;
+
+  // Squiggle amplitude: larger when slack
+  const squigAmp = stretchNorm < 0
+    ? Math.abs(stretchNorm) * p.squiggle * dist * 0.12
+    : stretchNorm * p.squiggle * -dist * 0.04; // slight vibration when taut
+
+  ctx.save();
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.globalAlpha = p.opacity;
+
+  // Draw the connection line
+  ctx.beginPath();
+  for (let i = 0; i <= segs; i++) {
+    const t = i / segs;
+    const x = b1.x + dx * t;
+    const y = b1.y + dy * t;
+    // Squiggle: sine wave perpendicular to line
+    const wave = Math.sin(t * Math.PI * 3 + springT * 0.12) * squigAmp * Math.sin(t * Math.PI);
+    const px = x + perpX * wave;
+    const py = y + perpY * wave;
+    i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+  }
+
+  // Outline (chunky cartoon style)
+  ctx.lineWidth = w + 4;
+  ctx.strokeStyle = '#111';
+  ctx.stroke();
+
+  // Fill colour — warmer when slack, cooler when stretched
+  const r = stretchNorm > 0 ? Math.round(80 + stretchNorm*60) : 80;
+  const g = stretchNorm > 0 ? Math.round(160 - stretchNorm*60) : 160 + Math.round(Math.abs(stretchNorm)*20);
+  const b = 80;
+  ctx.lineWidth = w;
+  ctx.strokeStyle = `rgb(${r},${g},${b})`;
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+// Solid bounce barrier
+function drawBounceSolid(x1, y1, x2, y2, age, lifetime) {
+  const op = p.opacity * Math.max(0, 1 - age / (lifetime * 1000));
+  const dx = x2-x1, dy = y2-y1;
+  const len = Math.sqrt(dx*dx+dy*dy) || 1;
+  const nx = dx/len, ny = dy/len;
+  const px = -ny, py = nx;
+  const cap = p.endCaps;
+
+  ctx.save();
+  ctx.lineCap = 'round';
+  ctx.globalAlpha = op;
+
+  // Shadow / depth
+  ctx.beginPath();
+  ctx.moveTo(x1 + px*1.5, y1 + py*1.5 + 3);
+  ctx.lineTo(x2 + px*1.5, y2 + py*1.5 + 3);
+  ctx.lineWidth = p.width + p.outlineW + 2;
+  ctx.strokeStyle = 'rgba(0,0,0,0.12)';
+  ctx.stroke();
+
+  // Outline (black)
+  if (p.outlineW > 0) {
+    ctx.beginPath();
+    ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
+    ctx.lineWidth = p.width + p.outlineW * 2;
+    ctx.strokeStyle = '#111';
+    ctx.stroke();
+  }
+
+  // Main body — solid white/light fill
+  ctx.beginPath();
+  ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
+  ctx.lineWidth = p.width;
+  ctx.strokeStyle = '#f0f4f8';
+  ctx.stroke();
+
+  // Highlight stripe
+  ctx.beginPath();
+  ctx.moveTo(x1 + px * p.width * 0.2, y1 + py * p.width * 0.2);
+  ctx.lineTo(x2 + px * p.width * 0.2, y2 + py * p.width * 0.2);
+  ctx.lineWidth = Math.max(1, p.width * 0.25);
+  ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+  ctx.stroke();
+
+  // End caps
+  if (cap > 0) {
+    [[x1,y1],[x2,y2]].forEach(([cx,cy]) => {
+      ctx.beginPath();
+      ctx.arc(cx, cy, p.width/2 + p.outlineW, 0, Math.PI*2);
+      ctx.fillStyle = '#111';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(cx, cy, p.width/2, 0, Math.PI*2);
+      ctx.fillStyle = '#f0f4f8';
+      ctx.fill();
+    });
+  }
+
+  ctx.restore();
+}
+
+// Catmull-Rom spline
+function buildSpline(points) {
+  const out = [];
+  for (let i = 0; i < points.length - 1; i++) {
+    const p0 = points[Math.max(0, i-1)];
+    const p1 = points[i];
+    const p2 = points[Math.min(points.length-1, i+1)];
+    const p3 = points[Math.min(points.length-1, i+2)];
+    for (let j = 0; j < 8; j++) {
+      const t = j/8, t2=t*t, t3=t2*t;
+      out.push({
+        x: 0.5*(2*p1.x+(-p0.x+p2.x)*t+(2*p0.x-5*p1.x+4*p2.x-p3.x)*t2+(-p0.x+3*p1.x-3*p2.x+p3.x)*t3),
+        y: 0.5*(2*p1.y+(-p0.y+p2.y)*t+(2*p0.y-5*p1.y+4*p2.y-p3.y)*t2+(-p0.y+3*p1.y-3*p2.y+p3.y)*t3),
+      });
+    }
+  }
+  out.push(points[points.length-1]);
+  return out;
+}
+
+// ── Main draw ─────────────────────────────────────────────────
+function draw() {
+  const W = cv.width, H = cv.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const now = Date.now();
+
+  // — Brush mode —
+  if (mode === 'brush') {
+    brushPaths = brushPaths.filter(bp => now - bp.created < p.lifetime * 1000);
+    brushPaths.forEach(bp => {
+      if (bp.points.length < 2) return;
+      const age = now - bp.created;
+      const op = Math.max(0, (1 - age / (p.lifetime * 1000))) * p.opacity;
+      drawBrushPath(bp.points, op, bp.colour);
+    });
+    if (currentPath && currentPath.points.length >= 2) {
+      drawBrushPath(currentPath.points, p.opacity, currentPath.colour);
+    }
+    // Label
+    ctx.save();
+    ctx.font = '13px monospace';
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.fillText('Draw anywhere to make brush strokes', 20, H - 20);
+    ctx.restore();
+  }
+
+  // — Connect tentative —
+  if (mode === 'connect-tent') {
+    // Static demo line across canvas + drag line if dragging
+    if (dragEnd && selectedBall) {
+      drawTentativeLine(selectedBall.x, selectedBall.y, dragEnd.x, dragEnd.y, p.opacity);
+    } else {
+      // Demo: draw between ball 0 and ball 1
+      drawTentativeLine(balls[0].x, balls[0].y, balls[1].x, balls[1].y, p.opacity);
+      drawTentativeLine(balls[1].x, balls[1].y, balls[2].x, balls[2].y, p.opacity * 0.7);
+    }
+    balls.forEach(drawBall);
+    ctx.save();
+    ctx.font = '13px monospace';
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.fillText('Click a ball, drag to another', 20, H - 20);
+    ctx.restore();
+  }
+
+  // — Connect solid (spring) —
+  if (mode === 'connect-solid') {
+    connections.forEach(c => drawSpringConnection(c.b1, c.b2));
+    if (dragEnd && selectedBall) {
+      drawTentativeLine(selectedBall.x, selectedBall.y, dragEnd.x, dragEnd.y, 0.65);
+    }
+    balls.forEach(drawBall);
+    ctx.save();
+    ctx.font = '13px monospace';
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.fillText('Click a ball then another to spring-connect • balls move freely', 20, H - 20);
+    ctx.restore();
+  }
+
+  // — Bounce tentative —
+  if (mode === 'bounce-tent') {
+    if (drawStart && drawEndPt) {
+      drawTentativeLine(drawStart.x, drawStart.y, drawEndPt.x, drawEndPt.y, p.opacity);
+    } else {
+      // Demo static line
+      drawTentativeLine(W*0.2, H*0.55, W*0.75, H*0.62, p.opacity);
+    }
+    balls.slice(0,1).forEach(drawBall);
+    ctx.save();
+    ctx.font = '13px monospace';
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.fillText('Drag to draw a tentative barrier', 20, H - 20);
+    ctx.restore();
+  }
+
+  // — Bounce solid —
+  if (mode === 'bounce-solid') {
+    barriers = barriers.filter(b => now - b.created < p.fadeTime * 1000 + 500);
+    barriers.forEach(b => {
+      const age = (now - b.created) / 1000;
+      drawBounceSolid(b.x1, b.y1, b.x2, b.y2, age, p.fadeTime);
+    });
+    if (drawStart && drawEndPt) {
+      drawBounceSolid(drawStart.x, drawStart.y, drawEndPt.x, drawEndPt.y, 0, 999);
+    }
+    balls.slice(0,1).forEach(drawBall);
+    ctx.save();
+    ctx.font = '13px monospace';
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.fillText('Drag to place barriers • they fade over time', 20, H - 20);
+    ctx.restore();
+  }
+}
+
+// ── Animation loop ────────────────────────────────────────────
+function loop() {
+  if (mode === 'connect-solid') updateSprings();
+  draw();
+  requestAnimationFrame(loop);
+}
+
+// ── Input ─────────────────────────────────────────────────────
+function hitBall(x, y) {
+  for (let i = balls.length-1; i >= 0; i--) {
+    const b = balls[i];
+    if (Math.hypot(x-b.x, y-b.y) < b.r + 8) return b;
+  }
+  return null;
+}
+
+cv.addEventListener('mousedown', e => {
+  const r = cv.getBoundingClientRect();
+  const x = (e.clientX - r.left) * (cv.width / r.width);
+  const y = (e.clientY - r.top) * (cv.height / r.height);
+
+  if (mode === 'brush') {
+    currentPath = { points: [{x,y}], colour: BRUSH_COLORS[colIdx % BRUSH_COLORS.length] };
+    colIdx++;
+  }
+  if (mode === 'connect-tent' || mode === 'connect-solid') {
+    const b = hitBall(x, y);
+    if (b) { selectedBall = b; dragEnd = {x,y}; }
+  }
+  if (mode === 'bounce-tent' || mode === 'bounce-solid') {
+    drawStart = {x,y}; drawEndPt = {x,y};
+  }
+});
+
+window.addEventListener('mousemove', e => {
+  const r = cv.getBoundingClientRect();
+  const x = (e.clientX - r.left) * (cv.width / r.width);
+  const y = (e.clientY - r.top) * (cv.height / r.height);
+
+  if (mode === 'brush' && currentPath) {
+    const last = currentPath.points[currentPath.points.length-1];
+    if (Math.abs(x-last.x) > 3 || Math.abs(y-last.y) > 3)
+      currentPath.points.push({x,y});
+  }
+  if ((mode === 'connect-tent' || mode === 'connect-solid') && selectedBall) {
+    dragEnd = {x,y};
+  }
+  if ((mode === 'bounce-tent' || mode === 'bounce-solid') && drawStart) {
+    drawEndPt = {x,y};
+  }
+});
+
+window.addEventListener('mouseup', e => {
+  const r = cv.getBoundingClientRect();
+  const x = (e.clientX - r.left) * (cv.width / r.width);
+  const y = (e.clientY - r.top) * (cv.height / r.height);
+
+  if (mode === 'brush' && currentPath) {
+    if (currentPath.points.length >= 2) {
+      brushPaths.push({ ...currentPath, created: Date.now() });
+    }
+    currentPath = null;
+  }
+
+  if (mode === 'connect-tent') {
+    selectedBall = null; dragEnd = null;
+  }
+
+  if (mode === 'connect-solid' && selectedBall) {
+    const b2 = hitBall(x, y);
+    if (b2 && b2 !== selectedBall) {
+      const exists = connections.find(c =>
+        (c.b1===selectedBall&&c.b2===b2)||(c.b1===b2&&c.b2===selectedBall));
+      if (!exists) {
+        const dx=b2.x-selectedBall.x, dy=b2.y-selectedBall.y;
+        connections.push({ b1:selectedBall, b2, restLen: Math.sqrt(dx*dx+dy*dy) });
+      }
+    }
+    selectedBall = null; dragEnd = null;
+  }
+
+  if (mode === 'bounce-tent') {
+    drawStart = null; drawEndPt = null;
+  }
+
+  if (mode === 'bounce-solid' && drawStart && drawEndPt) {
+    const dx=drawEndPt.x-drawStart.x, dy=drawEndPt.y-drawStart.y;
+    if (Math.sqrt(dx*dx+dy*dy) > 15) {
+      barriers.push({ x1:drawStart.x, y1:drawStart.y, x2:drawEndPt.x, y2:drawEndPt.y, created:Date.now() });
+    }
+    drawStart = null; drawEndPt = null;
+  }
+});
+
+// ── Tab switching ─────────────────────────────────────────────
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    mode = tab.dataset.mode;
+    // Reset state
+    brushPaths = []; currentPath = null;
+    connections = []; selectedBall = null; dragEnd = null;
+    barriers = []; drawStart = null; drawEndPt = null;
+    resetBalls();
+    buildControls();
+  });
+});
+
+// ── Init ──────────────────────────────────────────────────────
+resetBalls();
+buildControls();
+loop();
+</script>
+</body>
+</html>
