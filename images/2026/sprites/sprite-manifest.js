@@ -4,7 +4,7 @@ const SpriteManifest = {
     "cellSize": 200,
     "sheets": {
       "balls": {
-        "file": "images/2026/sprites/desktop/balls.webp",
+        "file": "/images/2026/sprites/desktop/balls.webp",
         "cols": 7,
         "rows": 6,
         "count": 39,
@@ -328,7 +328,7 @@ const SpriteManifest = {
         ]
       },
       "bestballs": {
-        "file": "images/2026/sprites/desktop/bestballs.webp",
+        "file": "/images/2026/sprites/desktop/bestballs.webp",
         "cols": 4,
         "rows": 4,
         "count": 15,
@@ -460,7 +460,7 @@ const SpriteManifest = {
         ]
       },
       "ppl": {
-        "file": "images/2026/sprites/desktop/ppl.webp",
+        "file": "/images/2026/sprites/desktop/ppl.webp",
         "cols": 6,
         "rows": 5,
         "count": 29,
@@ -884,7 +884,7 @@ const SpriteManifest = {
         ]
       },
       "other": {
-        "file": "images/2026/sprites/desktop/other.webp",
+        "file": "/images/2026/sprites/desktop/other.webp",
         "cols": 4,
         "rows": 4,
         "count": 14,
@@ -1008,7 +1008,7 @@ const SpriteManifest = {
         ]
       },
       "stars": {
-        "file": "images/2026/sprites/desktop/stars.webp",
+        "file": "/images/2026/sprites/desktop/stars.webp",
         "cols": 2,
         "rows": 2,
         "count": 3,
@@ -1046,7 +1046,7 @@ const SpriteManifest = {
     },
     "named": {
       "particles": {
-        "file": "images/2026/sprites/desktop/particles.webp",
+        "file": "/images/2026/sprites/desktop/particles.webp",
         "cols": 2,
         "rows": 1,
         "count": 2,
@@ -1196,7 +1196,7 @@ const SpriteManifest = {
         "h": 288
       },
       "mobile-logo": {
-        "file": "images/2026/sprites/desktop/mobile-logo.webp",
+        "file": "/images/2026/sprites/desktop/mobile-logo.webp",
         "w": 2000,
         "h": 717
       }
@@ -1206,7 +1206,7 @@ const SpriteManifest = {
     "cellSize": 100,
     "sheets": {
       "balls": {
-        "file": "images/2026/sprites/mobile/balls.webp",
+        "file": "/images/2026/sprites/mobile/balls.webp",
         "cols": 7,
         "rows": 6,
         "count": 39,
@@ -1530,7 +1530,7 @@ const SpriteManifest = {
         ]
       },
       "bestballs": {
-        "file": "images/2026/sprites/mobile/bestballs.webp",
+        "file": "/images/2026/sprites/mobile/bestballs.webp",
         "cols": 4,
         "rows": 4,
         "count": 15,
@@ -1662,7 +1662,7 @@ const SpriteManifest = {
         ]
       },
       "ppl": {
-        "file": "images/2026/sprites/mobile/ppl.webp",
+        "file": "/images/2026/sprites/mobile/ppl.webp",
         "cols": 6,
         "rows": 5,
         "count": 29,
@@ -1906,7 +1906,7 @@ const SpriteManifest = {
         ]
       },
       "bestppl": {
-        "file": "images/2026/sprites/mobile/bestppl.webp",
+        "file": "/images/2026/sprites/mobile/bestppl.webp",
         "cols": 5,
         "rows": 5,
         "count": 21,
@@ -2086,7 +2086,7 @@ const SpriteManifest = {
         ]
       },
       "other": {
-        "file": "images/2026/sprites/mobile/other.webp",
+        "file": "/images/2026/sprites/mobile/other.webp",
         "cols": 4,
         "rows": 4,
         "count": 14,
@@ -2210,7 +2210,7 @@ const SpriteManifest = {
         ]
       },
       "stars": {
-        "file": "images/2026/sprites/mobile/stars.webp",
+        "file": "/images/2026/sprites/mobile/stars.webp",
         "cols": 2,
         "rows": 2,
         "count": 3,
@@ -2248,7 +2248,7 @@ const SpriteManifest = {
     },
     "named": {
       "particles": {
-        "file": "images/2026/sprites/mobile/particles.webp",
+        "file": "/images/2026/sprites/mobile/particles.webp",
         "cols": 2,
         "rows": 1,
         "count": 2,
@@ -2279,7 +2279,7 @@ const SpriteManifest = {
         }
       },
       "special": {
-        "file": "images/2026/sprites/mobile/special.webp",
+        "file": "/images/2026/sprites/mobile/special.webp",
         "cols": 4,
         "rows": 3,
         "count": 11,
@@ -2393,12 +2393,12 @@ const SpriteManifest = {
     },
     "separate": {
       "desktop-logo": {
-        "file": "images/2026/sprites/mobile/desktop-logo.webp",
+        "file": "/images/2026/sprites/mobile/desktop-logo.webp",
         "w": 800,
         "h": 115
       },
       "mobile-logo": {
-        "file": "images/2026/sprites/mobile/mobile-logo.webp",
+        "file": "/images/2026/sprites/mobile/mobile-logo.webp",
         "w": 800,
         "h": 287
       }

@@ -10,55 +10,85 @@
     <meta name="author" content="Marie Claire LeBlanc Flanagan" />
     <meta name="description" content="Celebrating games in Toronto, Canada" />
 
-    <meta property="og:title" content="Toronto Games Week" />
+    <meta property="og:title" content="Toronto Games Week 2026 Recap" />
     <meta property="og:description" content="Celebrating games in Toronto, Canada" />
 
-    <meta property="og:image" content="/images/2024/tgwposternologos.png" />
+    <meta property="og:image" content="/images/2026/tgw-poster-social-aspect-ratio.png" />
 
-    <meta property="og:url" content="https://torontogamesweek.com" />
+    <meta property="og:url" content="https://torontogamesweek.com/blog/2026.html" />
     <meta property="og:type" content="webpage" />
 
-    <meta name="twitter:title" content="Toronto Games Week" />
+    <meta name="twitter:title" content="Toronto Games Week 2026 Recap" />
     <meta name="twitter:description" content="Celebrating games in Toronto, Canada" />
-    <meta name="twitter:image" content="images/2023/TGWSocialSmall.png" id="indexImage" />
+    <meta name="twitter:image" content="/images/2026/tgw-poster-social-aspect-ratio.png" id="indexImage" />
     <meta name="twitter:card" content="summary_large_image" />
+
+    <link rel="icon" type="image/png" href="/images/2026/favicon/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/images/2026/favicon/favicon.svg" />
+    <link rel="shortcut icon" href="/images/2026/favicon/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/2026/favicon/apple-touch-icon.png" />
+    <link rel="manifest" href="/images/2026/favicon/site.webmanifest" />
   </head>
 
   <body>
     <header>
+      <div id="logo-wrapper">
+        <picture>
+          <source media="(max-width: 767px)" srcset="/images/2026/special/mobile-logo.webp" />
+          <img src="/images/2026/special/desktop-logo.webp" alt="Logo" id="logo" />
+          <button class="logo-ball-btn" data-game="1" aria-label="Connect Game"></button>
+          <button class="logo-ball-btn" data-game="2" aria-label="Pop Game"></button>
+          <button class="logo-ball-btn" data-game="3" aria-label="Bounce Game"></button>
+          <button class="logo-ball-btn" data-game="4" aria-label="Brush Game"></button>
+        </picture>
+      </div>
+
       <button id="nav-toggle" aria-expanded="false" aria-controls="primary-navigation" class="nav-toggle-button">
         <span class="sr-only">Menu</span>
         <span class="icon"></span>
       </button>
 
-      <div>
-        <a href=""><img alt="" /></a>
-      </div>
-      <nav id="primary-navigation">
+      <nav id="primary-navigation" aria-label="Main navigation">
         <ul>
           <li>
-            <a href="/index.html">Home</a>
+            <a href="/index.html">
+              <img src="/images/2026/nav/home.png" alt="Home" />
+              <span class="sr-only">Home</span>
+            </a>
           </li>
           <li>
-            <!-- <a href="schedule.html" id="scheduleNav">Schedule</a> -->
+            <a href="/schedule.html" id="scheduleNav">
+              <img src="/images/2026/nav/schedule.png" alt="Schedule" />
+              <span class="sr-only">Schedule</span>
+            </a>
           </li>
           <li>
-            <a href="/about.html" id="aboutNav">About</a>
+            <a href="/about.html" id="aboutNav">
+              <img src="/images/2026/nav/about.png" alt="About" />
+              <span class="sr-only">About</span>
+            </a>
+          </li>
+          <li>
+            <a href="/get-involved.html" id="getInvolvedNav">
+              <img src="/images/2026/nav/get-involved.png" alt="get involved" />
+              <span class="sr-only">Get Involved</span>
+            </a>
           </li>
         </ul>
       </nav>
     </header>
-    <canvas id="myCanvas" width="500" height="400"></canvas>
-    <script src="https://cdn.rawgit.com/mrdoob/three.js/r129/build/three.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
-    <script src="/playableBackground.js"></script>
-    <main>
-      <div class="headerImgDiv">
-        <img id="letterImg" src="/images/2025/TGWLogo2025wCap.png" alt="A type treatment of Toronto Games Week" />
-        <p id="caption">A celebration of playable arts & culture</p>
-        <br />
-      </div>
 
+    <!-- Poster that fades out -->
+    <div class="poster-container" id="posterContainer">
+      <img src="/images/2026/tgwposterforsitelargeclear2.webp" alt="Toronto Games Week" id="posterImage" />
+    </div>
+
+    <!-- Game name display -->
+    <div class="game-name" id="gameName">o</div>
+
+    <canvas id="canvas"></canvas>
+
+    <main class="no-pointer-events">
       <div class="contentContainer" id="landingPage">
         <div class="content blog">
           <section class="textBox">
@@ -188,8 +218,7 @@
         </div>
       </div>
     </main>
-    <script src="/play.js"></script>
-    <script src="/connectionTest.js"></script>
+
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         const navToggle = document.getElementById("nav-toggle");
@@ -202,5 +231,9 @@
         });
       });
     </script>
+
+    <script src="/images/2026/sprites/sprite-manifest.js"></script>
+    <script src="/2026-sprite-assets.js"></script>
+    <script src="/2026-play.js"></script>
   </body>
 </html>
